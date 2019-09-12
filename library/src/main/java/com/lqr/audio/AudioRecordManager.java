@@ -35,7 +35,9 @@ public class AudioRecordManager implements Handler.Callback {
     IAudioState cancelState;
     IAudioState timerState;
     private IAudioRecordListener mAudioRecordListener;
-
+    //振幅参照基值
+    private int amplitudeBase = 60;
+    
     public static AudioRecordManager mInstance;
 
     public static AudioRecordManager getInstance(Context context) {
@@ -287,7 +289,16 @@ public class AudioRecordManager implements Handler.Callback {
 
     private void audioDBChanged() {
         if (this.mMediaRecorder != null) {
-            int db = this.mMediaRecorder.getMaxAmplitude() / 600;
+            
+            //解决录音时容易出现0db问题
+            double ratio = (double)this.mMediaRecorder.getMaxAmplitude() / amplitudeBase;
+            int db = 0;
+            if (ratio > 0)
+            {
+                db = (int)(20 * Math.log10(ratio));
+            }
+            Log.d(TAG,"db:"+db);
+            //int db = this.mMediaRecorder.getMaxAmplitude() / 600;
             if (mAudioRecordListener != null) {
                 mAudioRecordListener.onAudioDBChanged(db);
             }
